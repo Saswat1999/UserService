@@ -1,0 +1,252 @@
+openapi: 3.0.1
+info:
+  title: USER-SERVICE
+  version: v1
+servers:
+  - url: http://localhost:8081
+    description: Generated server url
+security:
+  - bearer: []
+tags:
+  - name: Authentication Controller
+    description: Authenticator Management API
+  - name: User Controller
+    description: User Management API
+paths:
+  /users/v1/updateuser:
+    put:
+      tags:
+        - User Controller
+      summary: Update user
+      description: Updates an existing user's details in the system.
+      operationId: updateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: User update successful. Returns the updated user details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: User update failed due to invalid input or server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /users/v1/register:
+    post:
+      tags:
+        - User Controller
+      summary: Register a new user
+      description: Creates a new user in the system
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: Invalid user details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /users/v1/event:
+    post:
+      tags:
+        - User Controller
+      summary: Publish user event
+      description: Publishes a user event to the system.
+      operationId: publishEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEvent'
+        required: true
+      responses:
+        '200':
+          description: User event published successfully.
+          content:
+            '*/*':
+              schema:
+                type: object
+  /authenticate/generatetoken:
+    post:
+      tags:
+        - Authentication Controller
+      summary: generate jwt token
+      description: generate jwt for user to use the services
+      operationId: createAuthenticationToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationRequest'
+        required: true
+      responses:
+        '200':
+          description: Token generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationResponse'
+        '400':
+          description: User authentication failed. Wrong username or password!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /users/v1:
+    get:
+      tags:
+        - User Controller
+      summary: Get all users
+      description: Retrieves a list of all users in the system.
+      operationId: getAllUser
+      responses:
+        '200':
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+        - bearer: []
+  /users/v1/userdetails:
+    get:
+      tags:
+        - User Controller
+      summary: Get user details
+      description: Retrieves the details of a user by username.
+      operationId: getUserDetailsbyUserName
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /users/v1/exists/{id}:
+    get:
+      tags:
+        - User Controller
+      summary: Check if user exists
+      description: Checks if a user exists in the system by user ID.
+      operationId: userExists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successfully checked the user existence. Returns true if exists, false otherwise.
+          content:
+            '*/*':
+              schema:
+                type: boolean
+  /users/v1/deleteuser:
+    delete:
+      tags:
+        - User Controller
+      summary: Delete user
+      description: Deletes a user from the system by username.
+      operationId: deleteUserDetailsbyUserName
+      responses:
+        '204':
+          description: User deletion successful. No content returned.
+          content:
+            '*/*':
+              schema:
+                type: object
+        '404':
+          description: User deletion failed. User not found.
+          content:
+            '*/*':
+              schema:
+                type: object
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+    GenericResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - FAILED
+    UserEvent:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        eventType:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: string
+    AuthenticationRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    AuthenticationResponse:
+      type: object
+      properties:
+        jwt:
+          type: string
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
